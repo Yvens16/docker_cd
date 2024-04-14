@@ -49,10 +49,11 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f ec2_artifactid-container
       - name: Run docker container
-        run: |
-          docker compose up -e \
-          MYSQL_DATABASE= ${{ secrets.MYSQL_DATABASE }} \
-          MYSQL_ROOT_PASSWORD= ${{ secrets.MYSQL_ROOT_PASSWORD }} \
-          MYSQL_PASSWORD= ${{ secrets.MYSQL_PASSWORD }} \
-          MYSQL_USER= ${{ secrets.MYSQL_USER }} \
-          MYSQL_HOST= ${{ secrets.MYSQL_HOST }}
+        run: docker compose up
+        # run: |
+        #   docker compose up -e \
+        #   MYSQL_DATABASE= ${{ secrets.MYSQL_DATABASE }} \
+        #   MYSQL_ROOT_PASSWORD= ${{ secrets.MYSQL_ROOT_PASSWORD }} \
+        #   MYSQL_PASSWORD= ${{ secrets.MYSQL_PASSWORD }} \
+        #   MYSQL_USER= ${{ secrets.MYSQL_USER }} \
+        #   MYSQL_HOST= ${{ secrets.MYSQL_HOST }}
