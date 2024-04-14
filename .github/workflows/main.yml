@@ -23,13 +23,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build image
-        run: |
-          docker compose build -e \
-          MYSQL_DATABASE= ${{ secrets.MYSQL_DATABASE }} \
-          MYSQL_ROOT_PASSWORD= ${{ secrets.MYSQL_ROOT_PASSWORD }} \
-          MYSQL_PASSWORD= ${{ secrets.MYSQL_PASSWORD }} \
-          MYSQL_USER= ${{ secrets.MYSQL_USER }} \
-          MYSQL_HOST= ${{ secrets.MYSQL_HOST }}
+        run: docker compose build
       - name: Push to registry
         run: docker-compose push
     # - name: Build with Maven
