@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: .
+    image: yvens/ec2_artifactid:latest
     ports:
       - "9000:8080"
     depends_on:
