@@ -17,31 +17,65 @@ jobs:
           java-version: "17"
           distribution: "temurin"
           cache: maven
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Build with Maven
+        run: mvn clean install
+      - name: Build & push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build image
-        run: |
-          docker-compose build \
-          --build-arg MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
-          --build-arg MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
-          --build-arg MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
-          --build-arg MYSQL_USER=${{ secrets.MYSQL_USER }} \
-          --build-arg MYSQL_HOST=${{ secrets.MYSQL_HOST }}
-      - name: Push to registry
-        run: docker compose push
+              image: yvens/ec2_artifactid
+              tags: latest
+              registry: docker.io
+              dockerfile: Dockerfile
+              username: ${{ secrets.DOCKER_USERNAME }}
+              password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Login to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Build image
+      #   run: |
+      #     docker-compose build \
+      #     --build-arg MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+      #     --build-arg MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+      #     --build-arg MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+      #     --build-arg MYSQL_USER=${{ secrets.MYSQL_USER }} \
+      #     --build-arg MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+      # - name: Push to registry
+      #   run: docker compose push
 
   deploy:
     needs: build
     # https://docs.github.com/fr/actions/hosting-your-own-runners/managing-self-hosted-runners/using-self-hosted-runners-in-a-workflow
     runs-on: [self-hosted]
     steps:
+      - name: Delete old container
+        run: sudo docker rm -f ec2_artifactid-container
       - name: Pull image from docker hub
         # Install docker on the ec2 virtualle machine:https://docs.docker.com/engine/install/ubuntu/
         run: sudo docker pull yvens/ec2_artifactid:latest
-      - name: Delete old container
-        run: sudo docker rm -f ec2_artifactid-container
       - name: Run docker container
-        run: docker compose -f docker-compose.yml up
+        run: |
+          sudo docker run -d -p 8080:8080 \
+            --network=spring-mysql-network \
+            --network=front-back-network \
+            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+            ec2_artifactid-container yvens/ec2_artifactid
+
+
+    # sudo docker network create spring-mysql-network
+    # sudo docker network create front-back-network
+    # sudo docker volume create docker-mysql-volume
+    # sudo docker run -d -p 3306:3306 --name mysqldb \
+    #   --network=spring-mysql-network \
+    #   -v docker-mysql-volume:/var/lib/mysql \
+    #   -e MYSQL_DATABASE=dockerDb \
+    #   -e MYSQL_ROOT_PASSWORD=root \
+    #   -e MYSQL_PASSWORD=mdp \
+    #   -e MYSQL_USER=yvens \
+    #   -e MYSQL_HOST=mysqldb \
+    #   mysql:latest
