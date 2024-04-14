@@ -2,7 +2,7 @@
 FROM eclipse-temurin:17 AS build
 # In the root directory
 COPY . .
-RUN ./mvnw clean install -DskipTests
+RUN ./mvnw clean install -Pprod -DskipTests
 
 FROM build as prod
 CMD ["java", "-jar", "/target/cd_app.jar", "--spring.profiles.active=prod"]
