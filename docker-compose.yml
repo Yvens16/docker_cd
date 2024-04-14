@@ -11,14 +11,14 @@ services:
     networks:
       - spring-mysql-network
       - front-back-network # We will need it when making the frontend, then declare the networks
-    env_file:
-      - .env
-    # environment:
-    #   MYSQL_HOST: ${MYSQL_HOST}
-    #   MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    #   MYSQL_DATABASE: ${MYSQL_DATABASE}
-    #   MYSQL_USER: ${MYSQL_USER}
-    #   MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # env_file:
+    #   - .env
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   mysqldb:
     image: "mysql:8.2.0"
@@ -30,13 +30,13 @@ services:
       - '3306:3306'
     networks:
       - spring-mysql-network
-    env_file:
-      - .env
-    # environment:
-    #   MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    #   MYSQL_DATABASE: ${MYSQL_DATABASE}
-    #   MYSQL_USER: ${MYSQL_USER}
-    #   MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # env_file:
+    #   - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 networks:
   spring-mysql-network:
   front-back-network:
