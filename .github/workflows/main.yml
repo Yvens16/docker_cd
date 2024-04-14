@@ -2,9 +2,9 @@ name: Deployment
 
 on:
   push:
-    branches: ["main"]
+    branches: ["action_bitovi"]
   pull_request:
-    branches: ["main"]
+    branches: ["action_bitovi"]
 
 jobs:
   build:
@@ -23,20 +23,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build image
-        run: docker compose build
+        run: |
+          docker-compose build --build-arg \
+          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+          MYSQL_USER=${{ secrets.MYSQL_USER }} \
+          MYSQL_HOST=${{ secrets.MYSQL_HOST }}
       - name: Push to registry
         run: docker-compose push
-    # - name: Build with Maven
-    #   run: mvn clean install
-    # - name: Build & push Docker image
-    #   uses: mr-smithers-excellent/docker-build-push@v6
-    #   with:
-    #       image: yvens/ec2_artifactid
-    #       tags: latest
-    #       registry: docker.io
-    #       dockerfile: Dockerfile
-    #       username: ${{ secrets.DOCKER_USERNAME }}
-    #       password: ${{ secrets.DOCKER_PASSWORD }}
 
   deploy:
     needs: build
@@ -49,11 +44,4 @@ jobs:
       - name: Delete old container
         run: sudo docker rm -f ec2_artifactid-container
       - name: Run docker container
-        run: docker compose up
-        # run: |
-        #   docker compose up -e \
-        #   MYSQL_DATABASE= ${{ secrets.MYSQL_DATABASE }} \
-        #   MYSQL_ROOT_PASSWORD= ${{ secrets.MYSQL_ROOT_PASSWORD }} \
-        #   MYSQL_PASSWORD= ${{ secrets.MYSQL_PASSWORD }} \
-        #   MYSQL_USER= ${{ secrets.MYSQL_USER }} \
-        #   MYSQL_HOST= ${{ secrets.MYSQL_HOST }}
+        run: docker-compose up
