@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+    ports:
+      - "9000:8080"
+    depends_on:
+      - mysqldb
+    restart: always # Restart automatically of the container stop for any reason but manually
+    networks:
+      - spring-mysql-network
+      - front-back-network # We will need it when making the frontend, then declare the networks
+    environment:
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  mysqldb:
+    image: "mysql:8.2.0"
+    volumes:
+      # So the data persist between container restart and update
+      - docker-mysql-volume:/var/lib/mysql
+    restart: always
+    ports:
+      - '3306:3306'
+    networks:
+      - spring-mysql-network
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+networks:
+  spring-mysql-network:
+  front-back-network:
+volumes:
+  docker-mysql-volume:
