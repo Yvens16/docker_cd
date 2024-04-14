@@ -64,7 +64,7 @@ jobs:
             -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
             -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
             -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
-            ec2_artifactid-container yvens/ec2_artifactid
+            --name backend yvens/ec2_artifactid
 
 
     # sudo docker network create spring-mysql-network
