@@ -2,9 +2,9 @@ name: Deployment
 
 on:
   push:
-    branches: ["main"]
+    branches: ["with_rds"]
   pull_request:
-    branches: ["main"]
+    branches: ["with_rds"]
 
 jobs:
   build:
@@ -17,43 +17,35 @@ jobs:
           java-version: "17"
           distribution: "temurin"
           cache: maven
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Build with Maven
+        run: mvn clean install -Pprod -DskipTests
+      - name: Build & push Docker image
+        uses: mr-smithers-excellent/docker-build-push@v6
         with:
+          image: yvens/ec2_artifactid
+          tags: latest
+          registry: docker.io
+          dockerfile: Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build image
-        run: docker compose build
-      - name: Push to registry
-        run: docker-compose push
-    # - name: Build with Maven
-    #   run: mvn clean install
-    # - name: Build & push Docker image
-    #   uses: mr-smithers-excellent/docker-build-push@v6
-    #   with:
-    #       image: yvens/ec2_artifactid
-    #       tags: latest
-    #       registry: docker.io
-    #       dockerfile: Dockerfile
-    #       username: ${{ secrets.DOCKER_USERNAME }}
-    #       password: ${{ secrets.DOCKER_PASSWORD }}
-
+          password: ${{ secrets.DOCKER_PASSWORD }}
   deploy:
     needs: build
     # https://docs.github.com/fr/actions/hosting-your-own-runners/managing-self-hosted-runners/using-self-hosted-runners-in-a-workflow
     runs-on: [self-hosted]
+    # Install docker on the ec2 virtualle machine:https://docs.docker.com/engine/install/ubuntu/
     steps:
       - name: Pull image from docker hub
-        # Install docker on the ec2 virtualle machine:https://docs.docker.com/engine/install/ubuntu/
         run: sudo docker pull yvens/ec2_artifactid:latest
       - name: Delete old container
         run: sudo docker rm -f ec2_artifactid-container
       - name: Run docker container
-        run: docker compose up
-        # run: |
-        #   docker compose up -e \
-        #   MYSQL_DATABASE= ${{ secrets.MYSQL_DATABASE }} \
-        #   MYSQL_ROOT_PASSWORD= ${{ secrets.MYSQL_ROOT_PASSWORD }} \
-        #   MYSQL_PASSWORD= ${{ secrets.MYSQL_PASSWORD }} \
-        #   MYSQL_USER= ${{ secrets.MYSQL_USER }} \
-        #   MYSQL_HOST= ${{ secrets.MYSQL_HOST }}
+        run: |
+          sudo docker run -d -p 8080:8080 \
+            --network=spring-mysql-network \
+            --network=front-back-network \
+            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
+            --name backend yvens/ec2_artifactid
