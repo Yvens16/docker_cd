@@ -43,4 +43,9 @@ jobs:
           sudo docker run -d -p 8080:8080 \
             --network=spring-mysql-network \
             --network=front-back-network \
+            -e MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }} \
+            -e MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }} \
+            -e MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }} \
+            -e MYSQL_USER=${{ secrets.MYSQL_USER }} \
+            -e MYSQL_HOST=${{ secrets.MYSQL_HOST }} \
             --name ec2_artifactid yvens/ec2_artifactid
